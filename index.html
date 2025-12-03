@@ -30,23 +30,20 @@ const napis = document.getElementById('napis');
 let timerZakonczony = false;
 let rozpoczęto = false;
 
-// Nasłuch na F przed startem
 document.addEventListener('keydown', function(event) {
     if(!rozpoczęto && event.key.toLowerCase() === 'f') {
         wymagane = 10000000;
-        // napis.textContent = "Tryb HARD włączony! Kliknięcia wymagane: 10 000 000";
     }
 });
 
-// Odliczanie czasu co 1 sekundę
 const timer = setInterval(() => {
-    if(!rozpoczęto) return; // nie ruszamy, dopóki nie startowano
+    if(!rozpoczęto) return; 
     sekundy++;
     if(sekundy >= limitCzasu) {
         sekundy = limitCzasu;
         clearInterval(timer);
         timerZakonczony = true;
-        const cpm = klik; // kliknięcia w 1 minutę
+        const cpm = klik; 
         napis.textContent = `Czas minął! CPM: ${cpm}`;
         return;
     }
@@ -55,15 +52,14 @@ const timer = setInterval(() => {
     }
 }, 1000);
 
-// Obsługa spacji
 document.addEventListener('keydown', function(event) {
     if(event.code === 'Space' && !timerZakonczony) {
-        rozpoczęto = true; // start timera po pierwszej spacji
+        rozpoczęto = true;
         klik++;
         if(klik < wymagane) {
             napis.textContent = `Kliknięcia: ${klik} , Czas: ${sekundy} / ${limitCzasu}s`;
         } else {
-            napis.textContent = `Ptoszek.pl będzie otwierany przy każdej spacji!`;
+            
             window.open('https://ptoszek.pl', '_blank');
         }
     }
