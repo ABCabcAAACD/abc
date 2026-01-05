@@ -2,9 +2,11 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
+<title>Gra z licznikiem odwiedzin</title>
 <style>
   body {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100vh;
@@ -14,13 +16,20 @@
   #napis {
     font-size: 24px;
     color: red;
-    user-select: none; /* żeby nie zaznaczało tekstu przy klikaniu */
-    cursor: pointer;   /* pokazuje, że można kliknąć */
+    user-select: none; 
+    cursor: pointer;
+  }
+  #licznik {
+    font-size: 20px;
+    color: blue;
+    margin-top: 20px;
   }
 </style>
 </head>
 <body>
+
 <div id="napis">Naciskaj SPACJE lub dotknij ekran jak najszybciej</div>
+<div id="licznik">Ładowanie liczby odwiedzin...</div>
 
 <script>
 let klik = 0;             
@@ -29,17 +38,18 @@ let sekundy = 0;
 const limitCzasu = 60;   
 
 const napis = document.getElementById('napis');
+const licznik = document.getElementById('licznik');
 let timerZakonczony = false;
 let rozpoczęto = false;
 
-// Kod "F" do zmiany wymaganej liczby kliknięć
+// --- Kod "F" do zmiany wymaganej liczby kliknięć ---
 document.addEventListener('keydown', function(event) {
     if(!rozpoczęto && event.key.toLowerCase() === 'f') {
         wymagane = 10000000;
     }
 });
 
-// Timer
+// --- Timer ---
 const timer = setInterval(() => {
     if(!rozpoczęto) return; 
     sekundy++;
@@ -56,7 +66,7 @@ const timer = setInterval(() => {
     }
 }, 1000);
 
-// Funkcja obsługująca kliknięcia / spację
+// --- Funkcja obsługująca kliknięcia / spację ---
 function klikEvent() {
     if(timerZakonczony) return;
     rozpoczęto = true;
@@ -68,17 +78,37 @@ function klikEvent() {
     }
 }
 
-// Obsługa spacji (komputer / PS)
+// --- Obsługa spacji (komputer / PS) ---
 document.addEventListener('keydown', function(event) {
     if(event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar' || event.key === 'x' || event.key === 'X') {
         klikEvent();
     }
 });
 
-// Obsługa kliknięcia / dotyku (telefon)
+// --- Obsługa kliknięcia / dotyku (telefon) ---
 napis.addEventListener('click', klikEvent);
-napis.addEventListener('touchstart', klikEvent);
+napis.addEventListener('touchend', klikEvent);
+
+// --- LICZNIK ODWIEDZIN ---
+// Używamy countapi.xyz
+const namespace = 'abc';   // dowolna unikalna nazwa Twojej strony
+const key = 'wejscia';     // klucz licznika
+
+async function aktualizujLicznik() {
+    try {
+        const res = await fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
+        const data = await res.json();
+        licznik.textContent = `Odwiedzono stronę ${data.value} razy`;
+    } catch (e) {
+        licznik.textContent = `Nie udało się załadować licznika`;
+        console.error(e);
+    }
+}
+
+// Wywołanie przy starcie
+aktualizujLicznik();
 
 </script>
+
 </body>
 </html>
