@@ -20,15 +20,10 @@
     cursor: pointer;
   }
 </style>
-
-<!-- Simple Analytics -->
-<script async defer src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
-<!-- Koniec Simple Analytics -->
-
 </head>
 <body>
 
-<div id="napis">Naciskaj SPACJĘ lub dotknij ekran jak najszybciej</div>
+<div id="napis">Naciskaj SPACJE lub dotknij ekran jak najszybciej</div>
 
 <script>
 let klik = 0;             
@@ -88,6 +83,9 @@ napis.addEventListener('click', klikEvent);
 napis.addEventListener('touchend', klikEvent);
 
 </script>
+
+<!-- Simple Analytics: wstawione tuż przed końcem body -->
+<script async defer src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
 
 </body>
 </html>
