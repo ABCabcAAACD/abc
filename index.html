@@ -19,17 +19,16 @@
     user-select: none;
     cursor: pointer;
   }
-  #licznik {
-    font-size: 20px;
-    color: blue;
-    margin-top: 20px;
-  }
 </style>
+
+<!-- Simple Analytics -->
+<script async defer src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+<!-- Koniec Simple Analytics -->
+
 </head>
 <body>
 
-<div id="napis">Naciskaj SPACJE lub dotknij ekran jak najszybciej</div>
-<div id="licznik">Ładowanie liczby odwiedzin...</div>
+<div id="napis">Naciskaj SPACJĘ lub dotknij ekran jak najszybciej</div>
 
 <script>
 let klik = 0;             
@@ -38,7 +37,6 @@ let sekundy = 0;
 const limitCzasu = 60;   
 
 const napis = document.getElementById('napis');
-const licznik = document.getElementById('licznik');
 let timerZakonczony = false;
 let rozpoczęto = false;
 
@@ -88,27 +86,6 @@ document.addEventListener('keydown', function(event) {
 // --- Obsługa kliknięcia / dotyku (telefon) ---
 napis.addEventListener('click', klikEvent);
 napis.addEventListener('touchend', klikEvent);
-
-// --- LICZNIK ODWIEDZIN ---
-// Używamy CountAPI, hit tworzy licznik jeśli nie istnieje
-const namespace = 'abc';   // unikalna nazwa Twojej strony
-const key = 'wejscia';     // klucz licznika
-
-async function aktualizujLicznik() {
-    try {
-        // Hit automatycznie tworzy licznik jeśli jeszcze nie istnieje
-        const res = await fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
-        const data = await res.json();
-        licznik.textContent = `Odwiedzono stronę ${data.value} razy`;
-    } catch (e) {
-        // Nigdy nie powinno się zdarzyć jeśli CountAPI działa
-        licznik.textContent = `Błąd połączenia z licznikiem`;
-        console.error(e);
-    }
-}
-
-// Wywołanie przy starcie strony
-aktualizujLicznik();
 
 </script>
 
