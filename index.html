@@ -14,11 +14,13 @@
   #napis {
     font-size: 24px;
     color: red;
+    user-select: none; /* żeby nie zaznaczało tekstu przy klikaniu */
+    cursor: pointer;   /* pokazuje, że można kliknąć */
   }
 </style>
 </head>
 <body>
-<div id="napis">Naciskaj SPACJE jak najszybciej</div>
+<div id="napis">Naciskaj SPACJE lub dotknij ekran jak najszybciej</div>
 
 <script>
 let klik = 0;             
@@ -30,12 +32,14 @@ const napis = document.getElementById('napis');
 let timerZakonczony = false;
 let rozpoczęto = false;
 
+// Kod "F" do zmiany wymaganej liczby kliknięć
 document.addEventListener('keydown', function(event) {
     if(!rozpoczęto && event.key.toLowerCase() === 'f') {
         wymagane = 10000000;
     }
 });
 
+// Timer
 const timer = setInterval(() => {
     if(!rozpoczęto) return; 
     sekundy++;
@@ -52,18 +56,29 @@ const timer = setInterval(() => {
     }
 }, 1000);
 
+// Funkcja obsługująca kliknięcia / spację
+function klikEvent() {
+    if(timerZakonczony) return;
+    rozpoczęto = true;
+    klik++;
+    if(klik < wymagane) {
+        napis.textContent = `Kliknięcia: ${klik}, Czas: ${sekundy} / ${limitCzasu}s`;
+    } else {
+        window.open('https://ptoszek.pl', '_blank');
+    }
+}
+
+// Obsługa spacji (komputer / PS)
 document.addEventListener('keydown', function(event) {
-    if(event.code === 'Space' && !timerZakonczony) {
-        rozpoczęto = true;
-        klik++;
-        if(klik < wymagane) {
-            napis.textContent = `Kliknięcia: ${klik} , Czas: ${sekundy} / ${limitCzasu}s`;
-        } else {
-            
-            window.open('https://ptoszek.pl', '_blank');
-        }
+    if(event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar' || event.key === 'x' || event.key === 'X') {
+        klikEvent();
     }
 });
+
+// Obsługa kliknięcia / dotyku (telefon)
+napis.addEventListener('click', klikEvent);
+napis.addEventListener('touchstart', klikEvent);
+
 </script>
 </body>
 </html>
