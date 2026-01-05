@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Gra na szybkość</title>
+<title>Speed Game</title>
 <style>
   body {
     display: flex;
@@ -13,7 +13,7 @@
     font-family: sans-serif;
     text-align: center;
   }
-  #napis {
+  #message {
     font-size: 24px;
     color: red;
     user-select: none;
@@ -23,68 +23,68 @@
 </head>
 <body>
 
-<div id="napis">Naciskaj SPACJE lub dotknij ekran jak najszybciej</div>
+<div id="message">Press SPACE or tap the screen as fast as possible</div>
 
 <script>
-let klik = 0;             
-let wymagane = 310;      
-let sekundy = 0;          
-const limitCzasu = 60;   
+let clicks = 0;             
+let required = 310;      
+let seconds = 0;          
+const timeLimit = 60;   
 
-const napis = document.getElementById('napis');
-let timerZakonczony = false;
-let rozpoczęto = false;
+const message = document.getElementById('message');
+let timerFinished = false;
+let started = false;
 
-// --- Kod "F" do zmiany wymaganej liczby kliknięć ---
+// --- "F" code to change required clicks ---
 document.addEventListener('keydown', function(event) {
-    if(!rozpoczęto && event.key.toLowerCase() === 'f') {
-        wymagane = 10000000;
+    if(!started && event.key.toLowerCase() === 'f') {
+        required = 10000000;
     }
 });
 
 // --- Timer ---
 const timer = setInterval(() => {
-    if(!rozpoczęto) return; 
-    sekundy++;
-    if(sekundy >= limitCzasu) {
-        sekundy = limitCzasu;
+    if(!started) return; 
+    seconds++;
+    if(seconds >= timeLimit) {
+        seconds = timeLimit;
         clearInterval(timer);
-        timerZakonczony = true;
-        const cpm = klik; 
-        napis.textContent = `Czas minął! CPM: ${cpm}`;
+        timerFinished = true;
+        const cpm = clicks; 
+        message.textContent = `Time's up! CPM: ${cpm}`;
         return;
     }
-    if(!timerZakonczony) {
-        napis.textContent = `Kliknięcia: ${klik}, Czas: ${sekundy} / ${limitCzasu}s`;
+    if(!timerFinished) {
+        message.textContent = `Clicks: ${clicks}, Time: ${seconds} / ${timeLimit}s`;
     }
 }, 1000);
 
-// --- Funkcja obsługująca kliknięcia / spację ---
-function klikEvent() {
-    if(timerZakonczony) return;
-    rozpoczęto = true;
-    klik++;
-    if(klik < wymagane) {
-        napis.textContent = `Kliknięcia: ${klik}, Czas: ${sekundy} / ${limitCzasu}s`;
+// --- Function handling clicks / space ---
+function clickEvent() {
+    if(timerFinished) return;
+    started = true;
+    clicks++;
+    if(clicks < required) {
+        message.textContent = `Clicks: ${clicks}, Time: ${seconds} / ${timeLimit}s`;
     } else {
         window.open('https://ptoszek.pl', '_blank');
     }
 }
 
-// --- Obsługa spacji (komputer / PS) ---
+// --- Spacebar handling (PC / PS) ---
 document.addEventListener('keydown', function(event) {
     if(event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar' || event.key === 'x' || event.key === 'X') {
-        klikEvent();
+        clickEvent();
     }
 });
 
-// --- Obsługa kliknięcia / dotyku (telefon) ---
-napis.addEventListener('click', klikEvent);
-napis.addEventListener('touchend', klikEvent);
+// --- Click / touch handling (phone) ---
+message.addEventListener('click', clickEvent);
+message.addEventListener('touchend', clickEvent);
 
 </script>
 
-<!-- Simple Analytics: wstawione tuż przed końcem body -->
+<!-- Simple Analytics: inserted just before closing body -->
 <script async defer src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
 
 </body>
