@@ -16,7 +16,7 @@
   #napis {
     font-size: 24px;
     color: red;
-    user-select: none; 
+    user-select: none;
     cursor: pointer;
   }
   #licznik {
@@ -90,22 +90,24 @@ napis.addEventListener('click', klikEvent);
 napis.addEventListener('touchend', klikEvent);
 
 // --- LICZNIK ODWIEDZIN ---
-// Używamy countapi.xyz
-const namespace = 'abc';   // dowolna unikalna nazwa Twojej strony
+// Używamy CountAPI, hit tworzy licznik jeśli nie istnieje
+const namespace = 'abc';   // unikalna nazwa Twojej strony
 const key = 'wejscia';     // klucz licznika
 
 async function aktualizujLicznik() {
     try {
+        // Hit automatycznie tworzy licznik jeśli jeszcze nie istnieje
         const res = await fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
         const data = await res.json();
         licznik.textContent = `Odwiedzono stronę ${data.value} razy`;
     } catch (e) {
-        licznik.textContent = `Nie udało się załadować licznika`;
+        // Nigdy nie powinno się zdarzyć jeśli CountAPI działa
+        licznik.textContent = `Błąd połączenia z licznikiem`;
         console.error(e);
     }
 }
 
-// Wywołanie przy starcie
+// Wywołanie przy starcie strony
 aktualizujLicznik();
 
 </script>
