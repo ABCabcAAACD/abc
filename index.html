@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Speed Game</title>
+<title>CPM calculator</title>
 
 <style>
 body {
@@ -14,23 +14,25 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-    font-family: sans-serif;
+    font-family: 'Courier New', monospace;
     text-align: center;
-
     touch-action: manipulation;
     user-select: none;
 }
 
 #totalClicks {
-    font-size: 20px;
-    color: blue;
+    font-size: 48px;
+    font-weight: bold;
+    color: #FFD700; 
     position: fixed;
-    top: 10px;
+    top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(255,255,255,0.8);
-    padding: 5px 10px;
-    border-radius: 5px;
+    background: #222; 
+    padding: 10px 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px #FFD700, 0 0 30px #FFA500;
+    letter-spacing: 2px;
     z-index: 1000;
 }
 
@@ -38,22 +40,21 @@ body {
     font-size: 24px;
     color: red;
     cursor: pointer;
-    margin-top: 100px;
+    margin-top: 150px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="totalClicks">Total clicks: 0</div>
+<div id="totalClicks">0</div>
 <div id="message">Press SPACE or tap anywhere as fast as possible</div>
 
 <script>
-// --- inicjalizacja zmiennych ---
 let totalClicksCount = parseInt(localStorage.getItem('totalClicks')) || 0;
 let dailyHistory = JSON.parse(localStorage.getItem('dailyHistory') || '{}');
 
-let required = 100; // dzienne kliknięcia wymagane
+let required = 100; 
 let seconds = 0;
 const timeLimit = 60;
 
@@ -63,39 +64,29 @@ let timerFinished = false;
 const message = document.getElementById('message');
 const totalClicksElem = document.getElementById('totalClicks');
 
-// --- funkcja dodająca dzisiejszy dzień jeśli go nie ma ---
-function ensureTodayInHistory() {
+function getTodayKey() {
     const now = new Date();
-    const today = now.getUTCFullYear() + '-' + (now.getUTCMonth()+1) + '-' + now.getUTCDate();
-    if (!dailyHistory[today]) {
-        dailyHistory[today] = { clicks: 0, redirects: 0 };
-        localStorage.setItem('dailyHistory', JSON.stringify(dailyHistory));
-    }
+    return now.getUTCFullYear() + '-' + (now.getUTCMonth()+1) + '-' + now.getUTCDate();
 }
 
-// --- reset lokalnych kliknięć i startowego ekranu ---
+// --- reset lokalnych kliknięć przy starcie ---
 function resetLocalClicks() {
     seconds = 0;
     started = false;
     timerFinished = false;
 
-    ensureTodayInHistory();
-    const now = new Date();
-    const today = now.getUTCFullYear() + '-' + (now.getUTCMonth()+1) + '-' + now.getUTCDate();
-    dailyHistory[today].clicks = 0; // reset dzienne kliknięcia
+    const today = getTodayKey();
+    if (!dailyHistory[today]) dailyHistory[today] = {clicks: 0, redirects: 0};
+    else dailyHistory[today].clicks = 0; // reset dziennych kliknięć
+
     localStorage.setItem('dailyHistory', JSON.stringify(dailyHistory));
 
     message.textContent = 'Press SPACE or tap anywhere as fast as possible';
 }
 
-// --- inicjalizacja ---
-resetLocalClicks();
-totalClicksElem.textContent = `Total clicks: ${totalClicksCount}`;
-
-// --- funkcja aktualizacji pola message ---
+// --- aktualizacja pola message ---
 function updateMessage() {
-    const now = new Date();
-    const today = now.getUTCFullYear() + '-' + (now.getUTCMonth()+1) + '-' + now.getUTCDate();
+    const today = getTodayKey();
     const localClicks = dailyHistory[today].clicks;
     message.textContent = `Clicks: ${localClicks}, Time: ${seconds} / ${timeLimit}s`;
 }
@@ -108,8 +99,7 @@ const timer = setInterval(() => {
         seconds = timeLimit;
         clearInterval(timer);
         timerFinished = true;
-        const now = new Date();
-        const today = now.getUTCFullYear() + '-' + (now.getUTCMonth()+1) + '-' + now.getUTCDate();
+        const today = getTodayKey();
         const localClicks = dailyHistory[today].clicks;
         message.textContent = `Time's up! Clicks: ${localClicks}`;
         return;
@@ -117,30 +107,28 @@ const timer = setInterval(() => {
     updateMessage();
 }, 1000);
 
-// --- kliknięcia / spacja ---
+// --- kliknięcia ---
 let spacePressed = false;
 
 function clickEvent() {
     if (timerFinished) return;
     started = true;
 
-    // --- GlobalClicks ---
+    // GlobalClicks
     totalClicksCount++;
-    totalClicksElem.textContent = `Total clicks: ${totalClicksCount}`;
+    totalClicksElem.textContent = `${totalClicksCount}`;
     localStorage.setItem('totalClicks', totalClicksCount);
 
-    // --- LocalClicks ---
-    ensureTodayInHistory();
-    const now = new Date();
-    const today = now.getUTCFullYear() + '-' + (now.getUTCMonth()+1) + '-' + now.getUTCDate();
+    // LocalClicks
+    const today = getTodayKey();
+    if (!dailyHistory[today]) dailyHistory[today] = {clicks: 0, redirects: 0};
     dailyHistory[today].clicks++;
     localStorage.setItem('dailyHistory', JSON.stringify(dailyHistory));
 
     updateMessage();
 
-    // --- przekierowanie do ptoszek.pl jeśli dzienne kliknięcia >= required ---
-    const localClicks = dailyHistory[today].clicks;
-    if (localClicks >= required) {
+    // przekierowanie
+    if (dailyHistory[today].clicks >= required) {
         dailyHistory[today].redirects = (dailyHistory[today].redirects || 0) + 1;
         localStorage.setItem('dailyHistory', JSON.stringify(dailyHistory));
         window.open('https://ptoszek.pl', '_blank');
@@ -153,17 +141,14 @@ document.addEventListener('keydown', (e) => {
         spacePressed = true;
         clickEvent();
     }
-
     handleSecretSequence(e.key);
 });
 
 document.addEventListener('keyup', (e) => {
-    if (e.code === 'Space' || e.key === ' ' || e.key.toLowerCase() === 'x') {
-        spacePressed = false;
-    }
+    if (e.code === 'Space' || e.key === ' ' || e.key.toLowerCase() === 'x') spacePressed = false;
 });
 
-// kliknięcia / tapnięcia w całym oknie
+// kliknięcia / tapnięcia
 document.addEventListener('pointerdown', clickEvent);
 
 // blokada double-tap zoom
@@ -177,7 +162,6 @@ document.addEventListener('touchend', (e) => {
 // --- sekretny kod do pobrania historii ---
 const secretCode = ['D','O','W','!','@','#'];
 let secretIndex = 0;
-
 function handleSecretSequence(key) {
     if (key === secretCode[secretIndex]) {
         secretIndex++;
@@ -189,13 +173,12 @@ function handleSecretSequence(key) {
             a.click();
             secretIndex = 0;
         }
-    } else {
-        secretIndex = 0;
-    }
+    } else secretIndex = 0;
 }
 
-// --- co minutę upewniamy się, że dzisiejszy dzień istnieje ---
-setInterval(ensureTodayInHistory, 60000);
+// --- inicjalizacja ---
+resetLocalClicks();
+totalClicksElem.textContent = `${totalClicksCount}`;
 
 </script>
 
