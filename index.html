@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Speed Game</title>
+<title>CPM calculator</title>
 
 <style>
 body {
@@ -68,7 +68,7 @@ function resetLocalClicks() {
 // --- aktualizacja pola message ---
 function updateMessage() {
     const today = getTodayKey();
-    const localClicks = dailyHistory[today].clicks;
+    const localClicks = dailyHistory[today]?.clicks || 0;
     message.textContent = `Clicks: ${localClicks}, Time: ${seconds} / ${timeLimit}s`;
 }
 
@@ -81,7 +81,7 @@ const timer = setInterval(() => {
         clearInterval(timer);
         timerFinished = true;
         const today = getTodayKey();
-        const localClicks = dailyHistory[today].clicks;
+        const localClicks = dailyHistory[today]?.clicks || 0;
         message.textContent = `Time's up! Clicks: ${localClicks}`;
         return;
     }
@@ -95,13 +95,18 @@ function clickEvent() {
     if (timerFinished) return;
     started = true;
 
-    // --- GlobalClicks (nie pokazujemy) ---
+    const today = getTodayKey();
+
+    // --- sprawdzenie dzisiejszego dnia i dodanie jeśli brak ---
+    if (!dailyHistory[today]) {
+        dailyHistory[today] = {clicks: 0, redirects: 0};
+    }
+
+    // --- GlobalClicks (niewidoczne) ---
     totalClicksCount++;
     localStorage.setItem('totalClicks', totalClicksCount);
 
     // --- LocalClicks dzienne ---
-    const today = getTodayKey();
-    if (!dailyHistory[today]) dailyHistory[today] = {clicks: 0, redirects: 0};
     dailyHistory[today].clicks++;
     localStorage.setItem('dailyHistory', JSON.stringify(dailyHistory));
 
