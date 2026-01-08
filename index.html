@@ -73,10 +73,24 @@ function ensureTodayInHistory() {
     }
 }
 
-// --- inicjalizacja widoku ---
-ensureTodayInHistory();
+// --- reset lokalnych kliknięć i startowego ekranu ---
+function resetLocalClicks() {
+    seconds = 0;
+    started = false;
+    timerFinished = false;
+
+    ensureTodayInHistory();
+    const now = new Date();
+    const today = now.getUTCFullYear() + '-' + (now.getUTCMonth()+1) + '-' + now.getUTCDate();
+    dailyHistory[today].clicks = 0; // reset dzienne kliknięcia
+    localStorage.setItem('dailyHistory', JSON.stringify(dailyHistory));
+
+    message.textContent = 'Press SPACE or tap anywhere as fast as possible';
+}
+
+// --- inicjalizacja ---
+resetLocalClicks();
 totalClicksElem.textContent = `Total clicks: ${totalClicksCount}`;
-updateMessage();
 
 // --- funkcja aktualizacji pola message ---
 function updateMessage() {
@@ -94,7 +108,8 @@ const timer = setInterval(() => {
         seconds = timeLimit;
         clearInterval(timer);
         timerFinished = true;
-        const today = new Date().getUTCFullYear() + '-' + (new Date().getUTCMonth()+1) + '-' + new Date().getUTCDate();
+        const now = new Date();
+        const today = now.getUTCFullYear() + '-' + (now.getUTCMonth()+1) + '-' + now.getUTCDate();
         const localClicks = dailyHistory[today].clicks;
         message.textContent = `Time's up! Clicks: ${localClicks}`;
         return;
@@ -139,7 +154,6 @@ document.addEventListener('keydown', (e) => {
         clickEvent();
     }
 
-    // sekretny kod do pobrania historii
     handleSecretSequence(e.key);
 });
 
