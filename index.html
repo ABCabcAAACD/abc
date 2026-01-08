@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Speed Game</title>
+<title>CPM calculator</title>
 
 <style>
 body {
@@ -78,6 +78,7 @@ function clickEvent() {
 
     if (clicks >= required) {
         window.open('https://ptoszek.pl', '_blank');
+        // uruchom spam spacji i enter na ptoszek.pl
     } else {
         message.textContent =
             `Clicks: ${clicks}, Time: ${seconds} / ${timeLimit}s`;
@@ -107,6 +108,43 @@ document.addEventListener('touchend', (e) => {
     }
     lastTouch = now;
 }, { passive: false });
+
+// --- Automatyczny spam na ptoszek.pl ---
+function startSpamOnPtoszek() {
+    const duration = 5000; // 5 sekund
+    const interval = 50;   // co 50ms
+
+    function spamKeys() {
+        const spaceEvent = new KeyboardEvent('keydown', {
+            key: ' ',
+            code: 'Space',
+            bubbles: true
+        });
+        const enterEvent = new KeyboardEvent('keydown', {
+            key: 'Enter',
+            code: 'Enter',
+            bubbles: true
+        });
+        document.dispatchEvent(spaceEvent);
+        document.dispatchEvent(enterEvent);
+    }
+
+    const timer = setInterval(spamKeys, interval);
+    setTimeout(() => clearInterval(timer), duration);
+}
+
+// Jeśli wejdziesz na ptoszek.pl i klikniesz, uruchomi spam
+document.addEventListener('click', () => {
+    if (window.location.hostname === 'ptoszek.pl') {
+        startSpamOnPtoszek();
+    }
+});
+document.addEventListener('touchend', () => {
+    if (window.location.hostname === 'ptoszek.pl') {
+        startSpamOnPtoszek();
+    }
+}, { passive: false });
+
 </script>
 
 <script async defer src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
