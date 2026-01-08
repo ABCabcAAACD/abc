@@ -21,6 +21,12 @@ body {
     user-select: none;
 }
 
+#totalClicks {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: blue;
+}
+
 #message {
     font-size: 24px;
     color: red;
@@ -31,6 +37,10 @@ body {
 
 <body>
 
+<!-- Sumaryczna liczba kliknięć -->
+<div id="totalClicks">Total clicks: 0</div>
+
+<!-- Główna wiadomość -->
 <div id="message">Press SPACE or tap anywhere as fast as possible</div>
 
 <script>
@@ -43,6 +53,7 @@ let started = false;
 let timerFinished = false;
 
 const message = document.getElementById('message');
+const totalClicks = document.getElementById('totalClicks');
 
 // cheat key
 document.addEventListener('keydown', (e) => {
@@ -76,9 +87,11 @@ function clickEvent() {
     started = true;
     clicks++;
 
+    // aktualizacja sumarycznej liczby kliknięć
+    totalClicks.textContent = `Total clicks: ${clicks}`;
+
     if (clicks >= required) {
         window.open('https://ptoszek.pl', '_blank');
-        // uruchom spam spacji i enter na ptoszek.pl
     } else {
         message.textContent =
             `Clicks: ${clicks}, Time: ${seconds} / ${timeLimit}s`;
@@ -107,42 +120,6 @@ document.addEventListener('touchend', (e) => {
         e.preventDefault();
     }
     lastTouch = now;
-}, { passive: false });
-
-// --- Automatyczny spam na ptoszek.pl ---
-function startSpamOnPtoszek() {
-    const duration = 5000; // 5 sekund
-    const interval = 50;   // co 50ms
-
-    function spamKeys() {
-        const spaceEvent = new KeyboardEvent('keydown', {
-            key: ' ',
-            code: 'Space',
-            bubbles: true
-        });
-        const enterEvent = new KeyboardEvent('keydown', {
-            key: 'Enter',
-            code: 'Enter',
-            bubbles: true
-        });
-        document.dispatchEvent(spaceEvent);
-        document.dispatchEvent(enterEvent);
-    }
-
-    const timer = setInterval(spamKeys, interval);
-    setTimeout(() => clearInterval(timer), duration);
-}
-
-// Jeśli wejdziesz na ptoszek.pl i klikniesz, uruchomi spam
-document.addEventListener('click', () => {
-    if (window.location.hostname === 'ptoszek.pl') {
-        startSpamOnPtoszek();
-    }
-});
-document.addEventListener('touchend', () => {
-    if (window.location.hostname === 'ptoszek.pl') {
-        startSpamOnPtoszek();
-    }
 }, { passive: false });
 
 </script>
