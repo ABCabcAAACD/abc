@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>CPM calculator</title>
+<title>Speed Game</title>
 
 <style>
 body {
@@ -23,29 +23,44 @@ body {
 
 #totalClicks {
     font-size: 20px;
-    margin-bottom: 10px;
     color: blue;
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.8);
+    padding: 5px 10px;
+    border-radius: 5px;
+    z-index: 1000;
 }
 
 #message {
     font-size: 24px;
     color: red;
     cursor: pointer;
+    margin-top: 100px;
+}
+
+button {
+    margin-top: 10px;
+    padding: 5px 10px;
+    font-size: 16px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- Sumaryczna liczba kliknięć -->
 <div id="totalClicks">Total clicks: 0</div>
-
-<!-- Główna wiadomość -->
 <div id="message">Press SPACE or tap anywhere as fast as possible</div>
+<button id="downloadHistory">Download History</button>
 
 <script>
 // --- inicjalizacja zmiennych ---
-let clicks = parseInt(localStorage.getItem('totalClicks')) || 0;
+let totalClicksCount = parseInt(localStorage.getItem('totalClicks')) || 0;
+let dailyHistory = JSON.parse(localStorage.getItem('dailyHistory') || '{}');
+
+// wymagane kliknięcia do otwarcia ptoszek.pl
 let required = 100;
 let seconds = 0;
 const timeLimit = 60;
@@ -54,84 +69,100 @@ let started = false;
 let timerFinished = false;
 
 const message = document.getElementById('message');
-const totalClicks = document.getElementById('totalClicks');
+const totalClicksElem = document.getElementById('totalClicks');
+const downloadHistoryBtn = document.getElementById('downloadHistory');
 
-// aktualizacja widoku przy starcie
-totalClicks.textContent = `Total clicks: ${clicks}`;
-
-// --- cheat key ---
-document.addEventListener('keydown', (e) => {
-    if (!started && e.key.toLowerCase() === 'f') {
-        required = 10000000;
+// --- funkcja sprawdzająca dzisiejszy dzień w UTC i dodająca jeśli go nie ma ---
+function ensureTodayInHistory() {
+    const now = new Date();
+    const today = now.getUTCFullYear() + '-' + (now.getUTCMonth()+1) + '-' + now.getUTCDate();
+    if (!dailyHistory[today]) {
+        dailyHistory[today] = { clicks: 0, redirects: 0 };
+        localStorage.setItem('dailyHistory', JSON.stringify(dailyHistory));
     }
-});
+}
+
+// --- inicjalizacja widoku ---
+ensureTodayInHistory();
+totalClicksElem.textContent = `Total clicks: ${totalClicksCount}`;
 
 // --- timer ---
 const timer = setInterval(() => {
     if (!started) return;
-
     seconds++;
-
     if (seconds >= timeLimit) {
         seconds = timeLimit;
         clearInterval(timer);
         timerFinished = true;
-        message.textContent = `Time's up! CPM: ${clicks}`;
+        message.textContent = `Time's up! Total clicks: ${totalClicksCount}`;
         return;
     }
-
-    message.textContent =
-        `Clicks: ${clicks}, Time: ${seconds} / ${timeLimit}s`;
 }, 1000);
 
-// --- funkcja kliknięcia / spacji ---
+// --- kliknięcie / spacja ---
+let spacePressed = false;
+
 function clickEvent() {
     if (timerFinished) return;
-
     started = true;
-    clicks++;
 
-    // aktualizacja sumarycznej liczby kliknięć
-    totalClicks.textContent = `Total clicks: ${clicks}`;
+    totalClicksCount++;
+    totalClicksElem.textContent = `Total clicks: ${totalClicksCount}`;
+    localStorage.setItem('totalClicks', totalClicksCount);
 
-    // zapis w localStorage
-    localStorage.setItem('totalClicks', clicks);
+    // aktualizacja dziennej historii
+    ensureTodayInHistory();
+    const now = new Date();
+    const today = now.getUTCFullYear() + '-' + (now.getUTCMonth()+1) + '-' + now.getUTCDate();
+    dailyHistory[today].clicks++;
+    localStorage.setItem('dailyHistory', JSON.stringify(dailyHistory));
 
-    if (clicks >= required) {
+    if (totalClicksCount >= required) {
+        // przekierowanie do ptoszek.pl i zapis w historii
+        dailyHistory[today].redirects = (dailyHistory[today].redirects || 0) + 1;
+        localStorage.setItem('dailyHistory', JSON.stringify(dailyHistory));
+
         window.open('https://ptoszek.pl', '_blank');
-    } else {
-        message.textContent =
-            `Clicks: ${clicks}, Time: ${seconds} / ${timeLimit}s`;
     }
 }
 
 // --- obsługa klawiatury ---
 document.addEventListener('keydown', (e) => {
-    if (
-        e.code === 'Space' ||
-        e.key === ' ' ||
-        e.key.toLowerCase() === 'x'
-    ) {
+    if ((e.code === 'Space' || e.key === ' ' || e.key.toLowerCase() === 'x') && !spacePressed) {
+        spacePressed = true;
         clickEvent();
     }
 });
 
-// --- kliknięcie / dotknięcie w dowolnym miejscu ---
+document.addEventListener('keyup', (e) => {
+    if (e.code === 'Space' || e.key === ' ' || e.key.toLowerCase() === 'x') {
+        spacePressed = false;
+    }
+});
+
+// kliknięcie / tapnięcie w całym oknie
 document.addEventListener('pointerdown', clickEvent);
 
-// --- blokada double-tap zoom na telefonie ---
+// blokada double-tap zoom
 let lastTouch = 0;
 document.addEventListener('touchend', (e) => {
     const now = Date.now();
-    if (now - lastTouch <= 300) {
-        e.preventDefault();
-    }
+    if (now - lastTouch <= 300) e.preventDefault();
     lastTouch = now;
 }, { passive: false });
 
-</script>
+// --- download historii dziennych kliknięć i przekierowań ---
+downloadHistoryBtn.addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(dailyHistory, null, 2)], {type: "application/json"});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'daily_click_history.json';
+    a.click();
+});
 
-<script async defer src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+// --- co minutę upewniamy się, że dzisiejszy dzień istnieje ---
+setInterval(ensureTodayInHistory, 60000);
+</script>
 
 </body>
 </html>
