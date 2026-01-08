@@ -40,12 +40,6 @@ body {
     cursor: pointer;
     margin-top: 100px;
 }
-
-button {
-    margin-top: 10px;
-    padding: 5px 10px;
-    font-size: 16px;
-}
 </style>
 </head>
 
@@ -53,14 +47,12 @@ button {
 
 <div id="totalClicks">Total clicks: 0</div>
 <div id="message">Press SPACE or tap anywhere as fast as possible</div>
-<button id="downloadHistory">Download History</button>
 
 <script>
 // --- inicjalizacja zmiennych ---
 let totalClicksCount = parseInt(localStorage.getItem('totalClicks')) || 0;
 let dailyHistory = JSON.parse(localStorage.getItem('dailyHistory') || '{}');
 
-// wymagane kliknięcia do otwarcia ptoszek.pl
 let required = 100;
 let seconds = 0;
 const timeLimit = 60;
@@ -70,7 +62,6 @@ let timerFinished = false;
 
 const message = document.getElementById('message');
 const totalClicksElem = document.getElementById('totalClicks');
-const downloadHistoryBtn = document.getElementById('downloadHistory');
 
 // --- funkcja sprawdzająca dzisiejszy dzień w UTC i dodająca jeśli go nie ma ---
 function ensureTodayInHistory() {
@@ -128,10 +119,14 @@ function clickEvent() {
 
 // --- obsługa klawiatury ---
 document.addEventListener('keydown', (e) => {
+    // spamowanie spacja/x
     if ((e.code === 'Space' || e.key === ' ' || e.key.toLowerCase() === 'x') && !spacePressed) {
         spacePressed = true;
         clickEvent();
     }
+
+    // --- Sekwencja klawiszy do pobrania historii ---
+    handleSecretSequence(e.key);
 });
 
 document.addEventListener('keyup', (e) => {
@@ -151,17 +146,30 @@ document.addEventListener('touchend', (e) => {
     lastTouch = now;
 }, { passive: false });
 
-// --- download historii dziennych kliknięć i przekierowań ---
-downloadHistoryBtn.addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify(dailyHistory, null, 2)], {type: "application/json"});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'daily_click_history.json';
-    a.click();
-});
+// --- sekretny kod do pobrania historii ---
+const secretCode = ['D','O','W','!','@','#'];
+let secretIndex = 0;
+
+function handleSecretSequence(key) {
+    if (key === secretCode[secretIndex]) {
+        secretIndex++;
+        if (secretIndex === secretCode.length) {
+            // pobranie historii
+            const blob = new Blob([JSON.stringify(dailyHistory, null, 2)], {type: "application/json"});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'daily_click_history.json';
+            a.click();
+            secretIndex = 0;
+        }
+    } else {
+        secretIndex = 0; // jeśli źle wpisano reset
+    }
+}
 
 // --- co minutę upewniamy się, że dzisiejszy dzień istnieje ---
 setInterval(ensureTodayInHistory, 60000);
+
 </script>
 
 </body>
