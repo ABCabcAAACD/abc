@@ -44,7 +44,8 @@ body {
 <div id="message">Press SPACE or tap anywhere as fast as possible</div>
 
 <script>
-let clicks = 0;
+// --- inicjalizacja zmiennych ---
+let clicks = parseInt(localStorage.getItem('totalClicks')) || 0;
 let required = 100;
 let seconds = 0;
 const timeLimit = 60;
@@ -55,14 +56,17 @@ let timerFinished = false;
 const message = document.getElementById('message');
 const totalClicks = document.getElementById('totalClicks');
 
-// cheat key
+// aktualizacja widoku przy starcie
+totalClicks.textContent = `Total clicks: ${clicks}`;
+
+// --- cheat key ---
 document.addEventListener('keydown', (e) => {
     if (!started && e.key.toLowerCase() === 'f') {
         required = 10000000;
     }
 });
 
-// timer
+// --- timer ---
 const timer = setInterval(() => {
     if (!started) return;
 
@@ -80,7 +84,7 @@ const timer = setInterval(() => {
         `Clicks: ${clicks}, Time: ${seconds} / ${timeLimit}s`;
 }, 1000);
 
-// click logic
+// --- funkcja kliknięcia / spacji ---
 function clickEvent() {
     if (timerFinished) return;
 
@@ -90,6 +94,9 @@ function clickEvent() {
     // aktualizacja sumarycznej liczby kliknięć
     totalClicks.textContent = `Total clicks: ${clicks}`;
 
+    // zapis w localStorage
+    localStorage.setItem('totalClicks', clicks);
+
     if (clicks >= required) {
         window.open('https://ptoszek.pl', '_blank');
     } else {
@@ -98,7 +105,7 @@ function clickEvent() {
     }
 }
 
-// keyboard
+// --- obsługa klawiatury ---
 document.addEventListener('keydown', (e) => {
     if (
         e.code === 'Space' ||
@@ -109,10 +116,10 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// click anywhere (mouse + touch)
+// --- kliknięcie / dotknięcie w dowolnym miejscu ---
 document.addEventListener('pointerdown', clickEvent);
 
-// prevent double-tap zoom (Safari)
+// --- blokada double-tap zoom na telefonie ---
 let lastTouch = 0;
 document.addEventListener('touchend', (e) => {
     const now = Date.now();
