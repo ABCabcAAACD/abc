@@ -53,7 +53,7 @@ body {
 let totalClicksCount = parseInt(localStorage.getItem('totalClicks')) || 0;
 let dailyHistory = JSON.parse(localStorage.getItem('dailyHistory') || '{}');
 
-let required = 100; // wymagane dzienne kliknięcia
+let required = 100; // dzienne kliknięcia wymagane
 let seconds = 0;
 const timeLimit = 60;
 
@@ -63,7 +63,7 @@ let timerFinished = false;
 const message = document.getElementById('message');
 const totalClicksElem = document.getElementById('totalClicks');
 
-// --- funkcja dodająca dzisiejszy dzień do historii jeśli go nie ma ---
+// --- funkcja dodająca dzisiejszy dzień jeśli go nie ma ---
 function ensureTodayInHistory() {
     const now = new Date();
     const today = now.getUTCFullYear() + '-' + (now.getUTCMonth()+1) + '-' + now.getUTCDate();
@@ -76,6 +76,15 @@ function ensureTodayInHistory() {
 // --- inicjalizacja widoku ---
 ensureTodayInHistory();
 totalClicksElem.textContent = `Total clicks: ${totalClicksCount}`;
+updateMessage();
+
+// --- funkcja aktualizacji pola message ---
+function updateMessage() {
+    const now = new Date();
+    const today = now.getUTCFullYear() + '-' + (now.getUTCMonth()+1) + '-' + now.getUTCDate();
+    const localClicks = dailyHistory[today].clicks;
+    message.textContent = `Clicks: ${localClicks}, Time: ${seconds} / ${timeLimit}s`;
+}
 
 // --- timer ---
 const timer = setInterval(() => {
@@ -85,9 +94,12 @@ const timer = setInterval(() => {
         seconds = timeLimit;
         clearInterval(timer);
         timerFinished = true;
-        message.textContent = `Time's up! Total clicks: ${totalClicksCount}`;
+        const today = new Date().getUTCFullYear() + '-' + (new Date().getUTCMonth()+1) + '-' + new Date().getUTCDate();
+        const localClicks = dailyHistory[today].clicks;
+        message.textContent = `Time's up! Clicks: ${localClicks}`;
         return;
     }
+    updateMessage();
 }, 1000);
 
 // --- kliknięcia / spacja ---
@@ -97,21 +109,22 @@ function clickEvent() {
     if (timerFinished) return;
     started = true;
 
-    // --- GlobalClicks (wyświetlanie) ---
+    // --- GlobalClicks ---
     totalClicksCount++;
     totalClicksElem.textContent = `Total clicks: ${totalClicksCount}`;
     localStorage.setItem('totalClicks', totalClicksCount);
 
-    // --- LocalClicks (dzienne) ---
+    // --- LocalClicks ---
     ensureTodayInHistory();
     const now = new Date();
     const today = now.getUTCFullYear() + '-' + (now.getUTCMonth()+1) + '-' + now.getUTCDate();
     dailyHistory[today].clicks++;
     localStorage.setItem('dailyHistory', JSON.stringify(dailyHistory));
 
-    const localClicks = dailyHistory[today].clicks;
+    updateMessage();
 
-    // --- przekierowanie do ptoszek.pl tylko jeśli dzienne kliknięcia >= required ---
+    // --- przekierowanie do ptoszek.pl jeśli dzienne kliknięcia >= required ---
+    const localClicks = dailyHistory[today].clicks;
     if (localClicks >= required) {
         dailyHistory[today].redirects = (dailyHistory[today].redirects || 0) + 1;
         localStorage.setItem('dailyHistory', JSON.stringify(dailyHistory));
@@ -121,7 +134,6 @@ function clickEvent() {
 
 // --- obsługa klawiatury ---
 document.addEventListener('keydown', (e) => {
-    // spacja / x
     if ((e.code === 'Space' || e.key === ' ' || e.key.toLowerCase() === 'x') && !spacePressed) {
         spacePressed = true;
         clickEvent();
@@ -156,7 +168,6 @@ function handleSecretSequence(key) {
     if (key === secretCode[secretIndex]) {
         secretIndex++;
         if (secretIndex === secretCode.length) {
-            // pobranie historii
             const blob = new Blob([JSON.stringify(dailyHistory, null, 2)], {type: "application/json"});
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
@@ -165,7 +176,7 @@ function handleSecretSequence(key) {
             secretIndex = 0;
         }
     } else {
-        secretIndex = 0; // reset jeśli błędnie wpisano
+        secretIndex = 0;
     }
 }
 
