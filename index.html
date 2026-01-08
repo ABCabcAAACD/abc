@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>CPM calculator</title>
+<title>Speed Game</title>
 
 <style>
 body {
@@ -20,39 +20,21 @@ body {
     user-select: none;
 }
 
-#totalClicks {
-    font-size: 48px;
-    font-weight: bold;
-    color: #FFD700; 
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #222; 
-    padding: 10px 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 15px #FFD700, 0 0 30px #FFA500;
-    letter-spacing: 2px;
-    z-index: 1000;
-}
-
 #message {
     font-size: 24px;
     color: red;
     cursor: pointer;
-    margin-top: 150px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="totalClicks">0</div>
 <div id="message">Press SPACE or tap anywhere as fast as possible</div>
 
 <script>
+// --- zmienne ---
 let totalClicksCount = parseInt(localStorage.getItem('totalClicks')) || 0;
-let displayedTotal = totalClicksCount; // liczba wyświetlana animacyjnie
 let dailyHistory = JSON.parse(localStorage.getItem('dailyHistory') || '{}');
 
 let required = 100; 
@@ -63,7 +45,6 @@ let started = false;
 let timerFinished = false;
 
 const message = document.getElementById('message');
-const totalClicksElem = document.getElementById('totalClicks');
 
 function getTodayKey() {
     const now = new Date();
@@ -78,8 +59,7 @@ function resetLocalClicks() {
 
     const today = getTodayKey();
     if (!dailyHistory[today]) dailyHistory[today] = {clicks: 0, redirects: 0};
-    else dailyHistory[today].clicks = 0;
-
+    else dailyHistory[today].clicks = 0; // reset dziennych kliknięć
     localStorage.setItem('dailyHistory', JSON.stringify(dailyHistory));
 
     message.textContent = 'Press SPACE or tap anywhere as fast as possible';
@@ -91,18 +71,6 @@ function updateMessage() {
     const localClicks = dailyHistory[today].clicks;
     message.textContent = `Clicks: ${localClicks}, Time: ${seconds} / ${timeLimit}s`;
 }
-
-// --- animacja TotalClicks ---
-function animateTotalClicks() {
-    if (displayedTotal < totalClicksCount) {
-        let diff = totalClicksCount - displayedTotal;
-        let increment = Math.ceil(diff / 5); // chunk
-        displayedTotal += increment;
-        totalClicksElem.textContent = displayedTotal;
-    }
-    requestAnimationFrame(animateTotalClicks);
-}
-animateTotalClicks(); // start animacji
 
 // --- timer ---
 const timer = setInterval(() => {
@@ -127,11 +95,11 @@ function clickEvent() {
     if (timerFinished) return;
     started = true;
 
-    // GlobalClicks
+    // --- GlobalClicks (nie pokazujemy) ---
     totalClicksCount++;
     localStorage.setItem('totalClicks', totalClicksCount);
 
-    // LocalClicks
+    // --- LocalClicks dzienne ---
     const today = getTodayKey();
     if (!dailyHistory[today]) dailyHistory[today] = {clicks: 0, redirects: 0};
     dailyHistory[today].clicks++;
@@ -139,7 +107,7 @@ function clickEvent() {
 
     updateMessage();
 
-    // przekierowanie
+    // --- przekierowanie ---
     if (dailyHistory[today].clicks >= required) {
         dailyHistory[today].redirects = (dailyHistory[today].redirects || 0) + 1;
         localStorage.setItem('dailyHistory', JSON.stringify(dailyHistory));
@@ -160,7 +128,7 @@ document.addEventListener('keyup', (e) => {
     if (e.code === 'Space' || e.key === ' ' || e.key.toLowerCase() === 'x') spacePressed = false;
 });
 
-// kliknięcia / tapnięcia
+// --- kliknięcia / tapnięcia w oknie ---
 document.addEventListener('pointerdown', clickEvent);
 
 // blokada double-tap zoom
@@ -171,7 +139,7 @@ document.addEventListener('touchend', (e) => {
     lastTouch = now;
 }, { passive: false });
 
-// --- sekretny kod do pobrania historii ---
+// --- sekretny kod pobrania JSON ---
 const secretCode = ['D','O','W','!','@','#'];
 let secretIndex = 0;
 function handleSecretSequence(key) {
@@ -190,7 +158,6 @@ function handleSecretSequence(key) {
 
 // --- inicjalizacja ---
 resetLocalClicks();
-totalClicksElem.textContent = `${displayedTotal}`;
 
 </script>
 
