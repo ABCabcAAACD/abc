@@ -53,7 +53,7 @@ body {
 let totalClicksCount = parseInt(localStorage.getItem('totalClicks')) || 0;
 let dailyHistory = JSON.parse(localStorage.getItem('dailyHistory') || '{}');
 
-let required = 100;
+let required = 100; // wymagane dzienne kliknięcia
 let seconds = 0;
 const timeLimit = 60;
 
@@ -63,7 +63,7 @@ let timerFinished = false;
 const message = document.getElementById('message');
 const totalClicksElem = document.getElementById('totalClicks');
 
-// --- funkcja sprawdzająca dzisiejszy dzień w UTC i dodająca jeśli go nie ma ---
+// --- funkcja dodająca dzisiejszy dzień do historii jeśli go nie ma ---
 function ensureTodayInHistory() {
     const now = new Date();
     const today = now.getUTCFullYear() + '-' + (now.getUTCMonth()+1) + '-' + now.getUTCDate();
@@ -90,42 +90,44 @@ const timer = setInterval(() => {
     }
 }, 1000);
 
-// --- kliknięcie / spacja ---
+// --- kliknięcia / spacja ---
 let spacePressed = false;
 
 function clickEvent() {
     if (timerFinished) return;
     started = true;
 
+    // --- GlobalClicks (wyświetlanie) ---
     totalClicksCount++;
     totalClicksElem.textContent = `Total clicks: ${totalClicksCount}`;
     localStorage.setItem('totalClicks', totalClicksCount);
 
-    // aktualizacja dziennej historii
+    // --- LocalClicks (dzienne) ---
     ensureTodayInHistory();
     const now = new Date();
     const today = now.getUTCFullYear() + '-' + (now.getUTCMonth()+1) + '-' + now.getUTCDate();
     dailyHistory[today].clicks++;
     localStorage.setItem('dailyHistory', JSON.stringify(dailyHistory));
 
-    if (totalClicksCount >= required) {
-        // przekierowanie do ptoszek.pl i zapis w historii
+    const localClicks = dailyHistory[today].clicks;
+
+    // --- przekierowanie do ptoszek.pl tylko jeśli dzienne kliknięcia >= required ---
+    if (localClicks >= required) {
         dailyHistory[today].redirects = (dailyHistory[today].redirects || 0) + 1;
         localStorage.setItem('dailyHistory', JSON.stringify(dailyHistory));
-
         window.open('https://ptoszek.pl', '_blank');
     }
 }
 
 // --- obsługa klawiatury ---
 document.addEventListener('keydown', (e) => {
-    // spamowanie spacja/x
+    // spacja / x
     if ((e.code === 'Space' || e.key === ' ' || e.key.toLowerCase() === 'x') && !spacePressed) {
         spacePressed = true;
         clickEvent();
     }
 
-    // --- Sekwencja klawiszy do pobrania historii ---
+    // sekretny kod do pobrania historii
     handleSecretSequence(e.key);
 });
 
@@ -135,7 +137,7 @@ document.addEventListener('keyup', (e) => {
     }
 });
 
-// kliknięcie / tapnięcie w całym oknie
+// kliknięcia / tapnięcia w całym oknie
 document.addEventListener('pointerdown', clickEvent);
 
 // blokada double-tap zoom
@@ -163,7 +165,7 @@ function handleSecretSequence(key) {
             secretIndex = 0;
         }
     } else {
-        secretIndex = 0; // jeśli źle wpisano reset
+        secretIndex = 0; // reset jeśli błędnie wpisano
     }
 }
 
